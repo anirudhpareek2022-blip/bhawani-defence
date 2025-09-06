@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bhawani Defence</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden; /* Hide scrollbars for the canvas effect */
+        }
+        .canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -10;
+        }
+        .scroll-container {
+            height: 100vh;
+            overflow-y: auto;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE and Edge */
+        }
+        .scroll-container::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, and Opera */
+        }
+        .login-modal, .mantra-modal {
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        /* Custom styles for spiritual aura effect on canvas */
+        .card-mantra {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            line-height: 1.5;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Canvas for the spiritual background -->
+    <div class="canvas-container">
+        <canvas id="spiritualCanvas"></canvas>
+    </div>
+
+    <!-- Main content container with scrolling -->
+    <div class="scroll-container">
+        <!-- Header -->
+        <header class="p-6 md:p-8 flex flex-col md:flex-row items-center justify-between z-10 relative">
+            <h1 class="text-4xl md:text-5xl font-bold text-white text-shadow-lg mb-4 md:mb-0">Bhawani Defence</h1>
+            <div class="flex items-center space-x-4 w-full md:w-auto">
+                <input type="text" id="searchInput" placeholder="Search for Mataji..." class="w-full md:w-80 px-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-300 bg-white bg-opacity-80 backdrop-blur-sm">
+                <button onclick="handleSearch()" class="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">Search</button>
+                <button onclick="showLoginModal()" class="px-6 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-full font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">Login</button>
+            </div>
+        </header>
+        
+        <!-- Main Content Section -->
+        <main class="container mx-auto p-6 md:p-8 relative z-10">
+            <h2 class="text-3xl font-semibold text-white text-center mb-12">Navratri Day-wise Darshan</h2>
+            <div id="mataji-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                <!-- Mataji cards will be dynamically inserted here -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Mantra/Stuti Modal -->
+    <div id="mantraModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 backdrop-blur-sm flex justify-center items-center p-4 hidden z-50 mantra-modal">
+        <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-lg w-full transform transition-all duration-500 scale-100">
+            <div class="flex justify-end">
+                <button onclick="hideMantraModal()" class="text-gray-500 hover:text-gray-700 text-2xl font-bold">&times;</button>
+            </div>
+            <h3 id="mantraModalTitle" class="text-3xl font-bold text-purple-700 mb-4 text-center"></h3>
+            <div class="bg-purple-50 p-6 rounded-2xl mb-6">
+                <p class="text-lg font-semibold text-purple-600">Mantra:</p>
+                <p id="mantraModalMantra" class="text-gray-800 card-mantra"></p>
+            </div>
+            <div class="bg-pink-50 p-6 rounded-2xl">
+                <p class="text-lg font-semibold text-pink-600">Stuti:</p>
+                <p id="mantraModalStuti" class="text-gray-800 card-mantra"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 backdrop-blur-sm flex justify-center items-center p-4 hidden z-50 login-modal">
+        <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full transform transition-all duration-500 scale-100">
+            <div class="flex justify-end">
+                <button onclick="hideLoginModal()" class="text-gray-500 hover:text-gray-700 text-2xl font-bold">&times;</button>
+            </div>
+            <h3 class="text-3xl font-bold text-blue-700 mb-6 text-center">Login</h3>
+            <form onsubmit="event.preventDefault(); handleLogin()">
+                <div class="mb-4">
+                    <label for="email" class="block text-gray-700 font-semibold mb-2">Email</label>
+                    <input type="email" id="email" class="w-full px-4 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter your email" required>
+                </div>
+                <div id="codeSection" class="mb-4 hidden">
+                    <label for="code" class="block text-gray-700 font-semibold mb-2">Code</label>
+                    <input type="password" id="code" class="w-full px-4 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter your secret code">
+                </div>
+                <p id="loginMessage" class="text-red-500 text-sm mb-4 hidden">Invalid email or code.</p>
+                <button type="submit" id="loginButton" class="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">Continue</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Data for the nine forms of Mataji with their mantras and stutis
+        const matajiData = [
+            {
+                name: "Maa Shailputri",
+                day: "Day 1",
+                mantra: "Om Devi Shailaputryai Namah\n\n$Himmaye Vande Vanchhitalabhay Chandrardhakritashekharam$\n$Vrisharudham Shuladharam Shailaputrim Yashasvinim$",
+                stuti: "$Vande Vaanchhit Laabhaay Chandrardhkritshekharaam, Vrishaarudhaa Shooldharaam Shailputriim Yashasvineem.$",
+                image: "https://placehold.co/400x400/805ad5/ffffff?text=Maa+Shailputri"
+            },
+            {
+                name: "Maa Brahmacharini",
+                day: "Day 2",
+                mantra: "Om Devi Brahmacharinyai Namah\n\n$Dadhaanaa Karapadmaabhyaamakshamaalaa Kamandaluu, Deveepraseedatu Mayi Brahmachaarinyanuttamaa.$",
+                stuti: "$Dadhaanaa Karapadmaabhyaamakshamaalaa Kamandaluu, Deveepraseedatu Mayi Brahmachaarinyanuttamaa.$",
+                image: "https://placehold.co/400x400/9b2c2c/ffffff?text=Maa+Brahmacharini"
+            },
+            {
+                name: "Maa Chandraghanta",
+                day: "Day 3",
+                mantra: "Om Devi Chandraghantayai Namah\n\n$Pindaj Pravaraarudhaa Chandakopastra Kairyutaa, Prasaadam Tanute Mahyam Chandraghanteti Vishrutaa.$",
+                stuti: "$Pindaj Pravaraarudhaa Chandakopastra Kairyutaa, Prasaadam Tanute Mahyam Chandraghanteti Vishrutaa.$",
+                image: "https://placehold.co/400x400/3182ce/ffffff?text=Maa+Chandraghanta"
+            },
+            {
+                name: "Maa Kushmanda",
+                day: "Day 4",
+                mantra: "Om Devi Kushmandayai Namah\n\n$Suraasampurnakalasham Rudhiraaplutameva Cha, Dadhaanaa Hastapadhyaabhyaam Kushmaandaa Shubhadaastu Me.$",
+                stuti: "$Suraasampurnakalasham Rudhiraaplutameva Cha, Dadhaanaa Hastapadhyaabhyaam Kushmaandaa Shubhadaastu Me.$",
+                image: "https://placehold.co/400x400/f56565/ffffff?text=Maa+Kushmanda"
+            },
+            {
+                name: "Maa Skandamata",
+                day: "Day 5",
+                mantra: "Om Devi Skandamatayai Namah\n\n$Sinhaasanagataa Nityam Padmaashritakaradvayaa, Shubhadaastu Sadaa Deveeshandamaataa Yashaswinee.$",
+                stuti: "$Sinhaasanagataa Nityam Padmaashritakaradvayaa, Shubhadaastu Sadaa Deveeshandamaataa Yashaswinee.$",
+                image: "https://placehold.co/400x400/6b46c1/ffffff?text=Maa+Skandamata"
+            },
+            {
+                name: "Maa Katyayani",
+                day: "Day 6",
+                mantra: "Om Devi Katyayanyai Namah\n\n$Chandrahaasojjvalakaraa Shaardulavaravaahanaa, Kaatyaayanee Shubham Dadyaad Deveedaanavaghaatineem.$",
+                stuti: "$Chandrahaasojjvalakaraa Shaardulavaravaahanaa, Kaatyaayanee Shubham Dadyaad Deveedaanavaghaatineem.$",
+                image: "https://placehold.co/400x400/dd6b20/ffffff?text=Maa+Katyayani"
+            },
+            {
+                name: "Maa Kaalratri",
+                day: "Day 7",
+                mantra: "Om Devi Kalaratryai Namah\n\n$Eka Venii Japakarnapuuraa Nagnaa Kharaasthitaa, Lamboshthii Karnikaakarnii Tailaabhyakta Sharirinii.$",
+                stuti: "$Eka Venii Japakarnapuuraa Nagnaa Kharaasthitaa, Lamboshthii Karnikaakarnii Tailaabhyakta Sharirinii.$",
+                image: "https://placehold.co/400x400/2d3748/ffffff?text=Maa+Kaalratri"
+            },
+            {
+                name: "Maa Mahagauri",
+                day: "Day 8",
+                mantra: "Om Devi Mahagauryai Namah\n\n$Shvete Vrishe Samaaruudhaa Shvetaambara Dharaa Shuchih, Mahaagaurii Shubham Dadyaat Mahadev Pramodadaa.$",
+                stuti: "$Shvete Vrishe Samaaruudhaa Shvetaambara Dharaa Shuchih, Mahaagaurii Shubham Dadyaat Mahadev Pramodadaa.$",
+                image: "https://placehold.co/400x400/ecc94b/ffffff?text=Maa+Mahagauri"
+            },
+            {
+                name: "Maa Siddhidatri",
+                day: "Day 9",
+                mantra: "Om Devi Siddhidatryai Namah\n\n$Siddha Gandharva Yakshaadyairasurairamaraairapi, Sevyamaanaa Sadaa Bhuuyaat Siddhidatrii Siddhidaa.$",
+                stuti: "$Siddha Gandharva Yakshaadyairasurairamaraairapi, Sevyamaanaa Sadaa Bhuuyaat Siddhidatrii Siddhidaa.$",
+                image: "https://placehold.co/400x400/d53f8c/ffffff?text=Maa+Siddhidatri"
+            }
+        ];
+
+        const matajiContainer = document.getElementById('mataji-container');
+        const searchInput = document.getElementById('searchInput');
+
+        // Function to render Mataji cards
+        const renderMatajiCards = (data) => {
+            matajiContainer.innerHTML = '';
+            data.forEach(mataji => {
+                const card = document.createElement('div');
+                card.className = "bg-white bg-opacity-80 backdrop-blur-sm rounded-3xl shadow-xl hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 cursor-pointer p-6 flex flex-col items-center text-center";
+                card.onclick = () => showMantraModal(mataji);
+                card.innerHTML = `
+                    <div class="h-48 w-48 bg-gray-200 rounded-full overflow-hidden mb-4 border-4 border-white">
+                        <img src="${mataji.image}" alt="${mataji.name}" class="object-cover w-full h-full">
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-1">${mataji.name}</h3>
+                    <p class="text-lg font-medium text-purple-600">${mataji.day}</p>
+                `;
+                matajiContainer.appendChild(card);
+            });
+        };
+
+        // Initial render
+        renderMatajiCards(matajiData);
+
+        // Search functionality
+        function handleSearch() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const filteredData = matajiData.filter(mataji => mataji.name.toLowerCase().includes(searchTerm));
+            renderMatajiCards(filteredData);
+        }
+
+        // Mantra Modal functions
+        const mantraModal = document.getElementById('mantraModal');
+        const mantraModalTitle = document.getElementById('mantraModalTitle');
+        const mantraModalMantra = document.getElementById('mantraModalMantra');
+        const mantraModalStuti = document.getElementById('mantraModalStuti');
+
+        function showMantraModal(mataji) {
+            mantraModalTitle.textContent = mataji.name;
+            mantraModalMantra.textContent = mataji.mantra;
+            mantraModalStuti.textContent = mataji.stuti;
+            mantraModal.classList.remove('hidden');
+        }
+
+        function hideMantraModal() {
+            mantraModal.classList.add('hidden');
+        }
+
+        // Login Modal functions
+        const loginModal = document.getElementById('loginModal');
+        const codeSection = document.getElementById('codeSection');
+        const loginButton = document.getElementById('loginButton');
+        const loginMessage = document.getElementById('loginMessage');
+        const emailInput = document.getElementById('email');
+        const codeInput = document.getElementById('code');
+
+        function showLoginModal() {
+            loginModal.classList.remove('hidden');
+            // Reset state on showing the modal
+            codeSection.classList.add('hidden');
+            loginMessage.classList.add('hidden');
+            loginButton.textContent = 'Continue';
+            emailInput.value = '';
+            codeInput.value = '';
+        }
+
+        function hideLoginModal() {
+            loginModal.classList.add('hidden');
+        }
+
+        // Hardcoded credentials for demonstration
+        const CORRECT_EMAIL = 'bhawanidefence@test.com';
+        const CORRECT_CODE = '123456';
+        let emailValidated = false;
+
+        function handleLogin() {
+            const email = emailInput.value;
+            const code = codeInput.value;
+
+            loginMessage.classList.add('hidden');
+
+            if (!emailValidated) {
+                if (email === CORRECT_EMAIL) {
+                    emailValidated = true;
+                    codeSection.classList.remove('hidden');
+                    loginButton.textContent = 'Login';
+                } else {
+                    loginMessage.textContent = 'Invalid email. Please try again.';
+                    loginMessage.classList.remove('hidden');
+                }
+            } else {
+                if (code === CORRECT_CODE) {
+                    alert('Login successful! Welcome to Bhawani Defence.');
+                    hideLoginModal();
+                    emailValidated = false; // Reset for next login attempt
+                } else {
+                    loginMessage.textContent = 'Invalid code. Please try again.';
+                    loginMessage.classList.remove('hidden');
+                }
+            }
+        }
+
+        // Canvas animation for spiritual background
+        const canvas = document.getElementById('spiritualCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        const particleCount = 100;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            particles = [];
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 1;
+                this.speedX = Math.random() * 0.5 - 0.25;
+                this.speedY = Math.random() * 0.5 - 0.25;
+                this.color = `hsl(${Math.random() * 360}, 50%, 70%)`;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.size > 0.2) this.size -= 0.01;
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function animate() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+                if (particles[i].size <= 0.2) {
+                    particles.splice(i, 1);
+                    particles.push(new Particle());
+                    i--;
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('load', () => {
+            resizeCanvas();
+            animate();
+        });
+        window.addEventListener('resize', resizeCanvas);
+    </script>
+</body>
+</html>
